@@ -302,49 +302,116 @@ const InvoiceManagement: React.FC = () => {
         <head>
           <title>Facture ${invoice.invoiceNumber}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-            .invoice-header { display: flex; justify-content: space-between; margin-bottom: 30px; }
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              margin: 0; 
+              padding: 20px; 
+              background: #f8fafc;
+              color: #334155;
+            }
+            .invoice-container {
+              background: white;
+              padding: 40px;
+              border-radius: 8px;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .invoice-header { 
+              display: flex; 
+              justify-content: space-between; 
+              margin-bottom: 40px; 
+              padding-bottom: 20px;
+              border-bottom: 2px solid #e2e8f0;
+            }
             .company-info { max-width: 50%; }
-            .logo { max-width: 150px; max-height: 80px; }
-            .invoice-title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-            .invoice-details, .client-details { margin-bottom: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-            th { background-color: #f3f4f6; text-align: left; padding: 10px; }
-            td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
+            .logo { max-width: 120px; max-height: 60px; border-radius: 4px; }
+            .invoice-title { font-size: 28px; font-weight: bold; margin-bottom: 10px; color: #1e293b; }
+            .invoice-details, .client-details { margin-bottom: 30px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; border-radius: 8px; overflow: hidden; }
+            th { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; text-align: left; padding: 15px; font-weight: 600; }
+            td { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; }
+            tbody tr:nth-child(even) { background-color: #f8fafc; }
             .text-right { text-align: right; }
-            .totals { margin-left: auto; width: 300px; }
-            .total-row { font-weight: bold; }
-            .notes { margin-top: 30px; padding: 10px; background-color: #f9fafb; border-radius: 5px; }
-            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #6b7280; }
+            .totals { 
+              margin-left: auto; 
+              width: 300px; 
+              background: #f8fafc;
+              padding: 20px;
+              border-radius: 8px;
+              border: 1px solid #e2e8f0;
+            }
+            .total-row { 
+              font-weight: bold; 
+              font-size: 16px;
+              background: #3b82f6 !important;
+              color: white;
+            }
+            .notes { 
+              margin-top: 30px; 
+              padding: 20px; 
+              background: #fef3c7; 
+              border-radius: 8px; 
+              border-left: 4px solid #f59e0b;
+            }
+            .footer { 
+              margin-top: 50px; 
+              text-align: center; 
+              font-size: 12px; 
+              color: #64748b; 
+              padding-top: 20px;
+              border-top: 1px solid #e2e8f0;
+            }
+            .section-title {
+              font-size: 16px;
+              font-weight: 600;
+              color: #1e293b;
+              margin-bottom: 15px;
+              padding-bottom: 5px;
+              border-bottom: 2px solid #3b82f6;
+              display: inline-block;
+            }
+            .info-box {
+              background: #f1f5f9;
+              padding: 15px;
+              border-radius: 6px;
+              margin-bottom: 20px;
+            }
           </style>
         </head>
         <body>
+          <div class="invoice-container">
           <div class="invoice-header">
             <div class="company-info">
               ${companyLogo ? `<img src="${companyLogo}" alt="Logo" class="logo" />` : ''}
-              <h3>${companyInfo.name}</h3>
-              <p>${companyInfo.address}</p>
-              <p>Tél: ${companyInfo.phone}</p>
-              <p>Email: ${companyInfo.email}</p>
-              <p>SIRET: ${companyInfo.siret}</p>
-              <p>TVA: ${companyInfo.vatNumber}</p>
+              <h2 style="margin: 10px 0; color: #1e293b;">${companyInfo.name}</h2>
+              <div style="color: #64748b; line-height: 1.5;">
+                <p style="margin: 2px 0;">${companyInfo.address}</p>
+                <p style="margin: 2px 0;">Tél: ${companyInfo.phone}</p>
+                <p style="margin: 2px 0;">Email: ${companyInfo.email}</p>
+                <p style="margin: 2px 0;">SIRET: ${companyInfo.siret}</p>
+                <p style="margin: 2px 0;">TVA: ${companyInfo.vatNumber}</p>
+              </div>
             </div>
             <div>
               <div class="invoice-title">FACTURE</div>
-              <div>N° ${invoice.invoiceNumber}</div>
-              <div>Date: ${invoice.issueDate}</div>
-              <div>Échéance: ${invoice.dueDate}</div>
-              <div>Statut: ${getStatusText(invoice.status)}</div>
+              <div style="font-size: 16px; font-weight: 600; color: #3b82f6; margin: 5px 0;">N° ${invoice.invoiceNumber}</div>
+              <div class="info-box">
+                <div style="margin: 3px 0;"><strong>Date:</strong> ${invoice.issueDate}</div>
+                <div style="margin: 3px 0;"><strong>Échéance:</strong> ${invoice.dueDate}</div>
+                <div style="margin: 3px 0;"><strong>Statut:</strong> ${getStatusText(invoice.status)}</div>
+              </div>
             </div>
           </div>
           
-          <div class="client-details">
-            <h3>Facturer à:</h3>
-            <div>${invoice.client}</div>
-            <div>${invoice.clientAddress || ''}</div>
-            <div>Email: ${invoice.clientEmail}</div>
+          <div class="client-details info-box">
+            <div class="section-title">Facturer à</div>
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 5px;">${invoice.client}</div>
+            ${invoice.clientAddress ? `<div style="margin: 2px 0;">${invoice.clientAddress}</div>` : ''}
+            <div style="margin: 2px 0;">Email: ${invoice.clientEmail}</div>
           </div>
           
+          <div class="section-title">Détail des Prestations</div>
           <table>
             <thead>
               <tr>
@@ -359,9 +426,9 @@ const InvoiceManagement: React.FC = () => {
               ${invoice.items.map(item => `
                 <tr>
                   <td>${item.description}</td>
-                  <td>${item.quantity}</td>
+                  <td style="text-align: center;">${item.quantity}</td>
                   <td>${formatCurrency(item.unitPrice)}</td>
-                  <td>${item.taxRate}%</td>
+                  <td style="text-align: center;">${item.taxRate}%</td>
                   <td class="text-right">${formatCurrency(item.total)}</td>
                 </tr>
               `).join('')}
@@ -369,7 +436,7 @@ const InvoiceManagement: React.FC = () => {
           </table>
           
           <div class="totals">
-            <table>
+            <table style="margin: 0;">
               <tr>
                 <td>Sous-total:</td>
                 <td class="text-right">${formatCurrency(invoice.subtotal)}</td>
@@ -379,7 +446,7 @@ const InvoiceManagement: React.FC = () => {
                 <td class="text-right">${formatCurrency(invoice.taxTotal)}</td>
               </tr>
               <tr class="total-row">
-                <td>Total:</td>
+                <td><strong>TOTAL:</strong></td>
                 <td class="text-right">${formatCurrency(invoice.total)}</td>
               </tr>
             </table>
@@ -387,13 +454,15 @@ const InvoiceManagement: React.FC = () => {
           
           ${invoice.notes ? `
             <div class="notes">
-              <h3>Notes:</h3>
+              <div class="section-title">Notes</div>
               <p>${invoice.notes}</p>
             </div>
           ` : ''}
           
           <div class="footer">
-            <p>${companyInfo.name} - ${companyInfo.address} - SIRET: ${companyInfo.siret}</p>
+            <p><strong>${companyInfo.name}</strong></p>
+            <p>${companyInfo.address} - SIRET: ${companyInfo.siret}</p>
+          </div>
           </div>
         </body>
         </html>
