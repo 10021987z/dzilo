@@ -5,12 +5,12 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "demo-api-key",
-  authDomain: "dziljo-demo.firebaseapp.com",
-  projectId: "dziljo-demo",
-  storageBucket: "dziljo-demo.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456"
+  apiKey: "AIzaSyBqJVVLtgsqOSzgjQzOqZnVVVVVVVVVVVV",
+  authDomain: "dziljo-demo-project.firebaseapp.com",
+  projectId: "dziljo-demo-project",
+  storageBucket: "dziljo-demo-project.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef1234567890abcdef"
 };
 
 // Initialize Firebase
