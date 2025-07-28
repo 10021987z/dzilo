@@ -5,6 +5,8 @@ interface NewInvoiceFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (invoiceData: any) => void;
+  initialData?: any;
+  isEditing?: boolean;
 }
 
 interface InvoiceItem {
@@ -16,22 +18,24 @@ interface InvoiceItem {
   total: number;
 }
 
+  initialData,
+  isEditing = false
 const NewInvoiceForm: React.FC<NewInvoiceFormProps> = ({ isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
-    invoiceNumber: `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
-    client: '',
-    clientEmail: '',
-    clientAddress: '',
-    issueDate: new Date().toISOString().split('T')[0],
-    dueDate: '',
-    paymentTerms: '30',
-    notes: '',
-    status: 'draft',
-    taxRate: 20
+    invoiceNumber: initialData?.invoiceNumber || `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
+    client: initialData?.client || '',
+    clientEmail: initialData?.clientEmail || '',
+    clientAddress: initialData?.clientAddress || '',
+    issueDate: initialData?.issueDate || new Date().toISOString().split('T')[0],
+    dueDate: initialData?.dueDate || '',
+    paymentTerms: initialData?.paymentTerms || '30',
+    notes: initialData?.notes || '',
+    status: initialData?.status || 'draft',
+    taxRate: initialData?.taxRate || 20
   });
 
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([
-    { id: 1, description: '', quantity: 1, unitPrice: 0, taxRate: 20, total: 0 }
+    initialData?.items || [{ id: 1, description: '', quantity: 1, unitPrice: 0, taxRate: 20, total: 0 }]
   ]);
 
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -165,12 +169,14 @@ const NewInvoiceForm: React.FC<NewInvoiceFormProps> = ({ isOpen, onClose, onSave
       // Prepare invoice data
       const invoiceData = {
         ...formData,
+        id: initialData?.id || Date.now(),
         items: invoiceItems,
         subtotal: calculateSubtotal(),
         taxTotal: calculateTaxTotal(),
         total: calculateTotal(),
-        createdDate: new Date().toISOString().split('T')[0],
-        id: Date.now()
+        createdDate: initialData?.createdDate || new Date().toISOString().split('T')[0],
+        paymentDate: initialData?.paymentDate,
+        paymentMethod: initialData?.paymentMethod
       };
       
       // Simulate API call
@@ -211,7 +217,7 @@ const NewInvoiceForm: React.FC<NewInvoiceFormProps> = ({ isOpen, onClose, onSave
               </div>
               <div>
                 <h1 className="text-2xl font-bold">Nouvelle Facture</h1>
-                <p className="text-white/80">Créez une nouvelle facture pour vos clients</p>
+                <p className="text-white/80">{isEditing ? 'Modifiez les informations de la facture' : 'Créez une nouvelle facture pour vos clients'}</p>
               </div>
             </div>
             <button
@@ -231,15 +237,16 @@ const NewInvoiceForm: React.FC<NewInvoiceFormProps> = ({ isOpen, onClose, onSave
                 <Check className="w-10 h-10 text-green-600" />
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Facture Créée avec Succès !</h2>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">{isEditing ? 'Facture Mise à Jour !' : 'Facture Créée avec Succès !'}</h2>
               <p className="text-slate-600 mb-6">
-                La facture a été créée et est prête à être envoyée au client.
+                {isEditing ? 'Les modifications ont été enregistrées.' : 'La facture a été créée et est prête à être envoyée au client.'}
               </p>
             </div>
           ) : isSubmitting ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 border-4 border-t-green-600 border-green-200 rounded-full animate-spin mx-auto mb-6"></div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">Création en cours...</h2>
-              <p className="text-slate-600">Nous créons votre facture</p>
+              <h2 className="text-xl font-semibold text-slate-900 mb-2">{isEditing ? 'Mise à jour en cours...' : 'Création en cours...'}</h2>
+              <p className="text-slate-600">{isEditing ? 'Nous mettons à jour votre facture' : 'Nous créons votre facture'}</p>
             </div>
           ) : (
             <>
@@ -523,7 +530,7 @@ const NewInvoiceForm: React.FC<NewInvoiceFormProps> = ({ isOpen, onClose, onSave
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  Créer la Facture
+                  {isEditing ? 'Mettre à Jour la Facture' : 'Créer la Facture'}
                 </button>
               </div>
             </div>

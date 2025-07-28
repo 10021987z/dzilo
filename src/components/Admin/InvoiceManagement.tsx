@@ -34,6 +34,8 @@ const InvoiceManagement: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [invoiceToEdit, setInvoiceToEdit] = useState<Invoice | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [showCompanySettings, setShowCompanySettings] = useState(false);
@@ -210,6 +212,27 @@ const InvoiceManagement: React.FC = () => {
     const successElement = document.createElement('div');
     successElement.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-bounce';
     successElement.textContent = `✅ Statut de la facture mis à jour : ${getStatusText(newStatus)}`;
+    document.body.appendChild(successElement);
+    setTimeout(() => document.body.removeChild(successElement), 3000);
+  };
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setInvoiceToEdit(invoice);
+    setShowEditModal(true);
+    setSelectedInvoice(null); // Close detail modal if open
+  };
+
+  const handleUpdateInvoice = (updatedInvoice: Invoice) => {
+    setInvoices(prev => prev.map(inv => 
+      inv.id === updatedInvoice.id ? updatedInvoice : inv
+    ));
+    setShowEditModal(false);
+    setInvoiceToEdit(null);
+    
+    // Show success notification
+    const successElement = document.createElement('div');
+    successElement.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-bounce';
+    successElement.textContent = '✅ Facture mise à jour avec succès !';
     document.body.appendChild(successElement);
     setTimeout(() => document.body.removeChild(successElement), 3000);
   };
@@ -934,9 +957,12 @@ const InvoiceManagement: React.FC = () => {
                       <div className="bg-slate-50 rounded-lg p-4">
                         <h4 className="font-medium text-slate-900 mb-3">Actions Rapides</h4>
                         <div className="space-y-2">
-                          <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                          <button 
+                            onClick={() => handleEditInvoice(selectedInvoice)}
+                            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                          >
                             <Edit className="w-4 h-4 mr-2" />
-                            Modifier
+                            Modificateur
                           </button>
                           <button 
                             onClick={() => handlePrintInvoice(selectedInvoice)}
@@ -1057,6 +1083,30 @@ const InvoiceManagement: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                <div className="flex space-x-3 pt-4 border-t border-slate-200">
+                  <button 
+                    onClick={() => handleEditInvoice(selectedInvoice)}
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Modificateur
+                  </button>
+                  <button 
+                    onClick={() => handlePrintInvoice(selectedInvoice)}
+                    className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Imprimer
+                  </button>
+                  <button 
+                    onClick={() => handleDownloadPDF(selectedInvoice)}
+                    className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Télécharger PDF
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1067,6 +1117,20 @@ const InvoiceManagement: React.FC = () => {
             onClose={() => setShowCreateModal(false)}
             onSave={handleCreateInvoice}
           />
+
+          {/* Edit Invoice Modal */}
+          {showEditModal && invoiceToEdit && (
+            <NewInvoiceForm
+              isOpen={showEditModal}
+              onClose={() => {
+                setShowEditModal(false);
+                setInvoiceToEdit(null);
+              }}
+              onSave={handleUpdateInvoice}
+              initialData={invoiceToEdit}
+              isEditing={true}
+            />
+          )}
 
           {/* Company Settings Modal */}
           <CompanySettings
