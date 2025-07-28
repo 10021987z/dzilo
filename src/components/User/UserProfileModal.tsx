@@ -30,10 +30,14 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
   const handleSave = async () => {
     setIsLoading(true);
     try {
+      if (!userProfile?.uid) {
+        throw new Error('User profile not loaded');
+      }
       await updateUserProfile(formData);
       setIsEditing(false);
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error);
+      toast.error('Erreur lors de la sauvegarde du profil');
     } finally {
       setIsLoading(false);
     }
