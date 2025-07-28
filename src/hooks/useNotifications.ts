@@ -36,12 +36,17 @@ export interface Notification {
 }
 
 export const useNotifications = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
+    // Wait for authentication state to be fully loaded
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setNotifications([]);
       setUnreadCount(0);
@@ -82,7 +87,7 @@ export const useNotifications = () => {
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, authLoading]);
 
   const markAsRead = async (notificationId: string) => {
     try {
