@@ -8,7 +8,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 import NotificationCenter from './NotificationCenter';
 import UserProfileModal from '../User/UserProfileModal';
 import UserSettingsModal from '../User/UserSettingsModal';
-import HelpSupportModal from '../User/HelpSupportModal';
+import HelpSupportModal from '../User/HelpSupport';
 import LogoutConfirmation from '../User/LogoutConfirmation';
 import QuickActions from './QuickActions';
 import NewEventModal from '../Commercial/NewEventModal';

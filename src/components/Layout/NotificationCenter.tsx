@@ -29,7 +29,7 @@ interface NotificationCenterProps {
 }
 
 const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
-  const { notifications, loading, unreadCount, markAsRead, markAllAsRead, getNotificationIcon, getNotificationColor } = useNotifications();
+  const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   
   const [localNotifications, setLocalNotifications] = useState<Notification[]>([
     {
@@ -261,23 +261,23 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
   };
 
   const markAsUnread = (id: number) => {
-    setNotifications(prev => prev.map(notif => 
+    setLocalNotifications(prev => prev.map(notif => 
       notif.id === id ? { ...notif, isRead: false } : notif
     ));
   };
 
   const toggleStar = (id: number) => {
-    setNotifications(prev => prev.map(notif => 
+    setLocalNotifications(prev => prev.map(notif => 
       notif.id === id ? { ...notif, isStarred: !notif.isStarred } : notif
     ));
   };
 
   const deleteNotificationLocal = (id: number) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
+    setLocalNotifications(prev => prev.filter(notif => notif.id !== id));
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+  const markAllAsReadLocal = () => {
+    setLocalNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
   };
 
   const filteredNotifications = displayNotifications.filter(notif => {
@@ -380,7 +380,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
           {unreadCount > 0 && (
             <div className="mt-4 flex justify-between items-center">
               <button
-                onClick={markAllAsRead}
+                onClick={notifications.length > 0 ? markAllAsRead : markAllAsReadLocal}
                 className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
               >
                 Tout marquer comme lu
@@ -455,7 +455,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
                                 {notification.isRead ? 'Marquer non lu' : 'Marquer lu'}
                               </button>
                               <button
-                                onClick={() => deleteNotification(notification.id)}
+                               onClick={() => deleteNotificationLocal(notification.id)}
                                 className="w-full px-3 py-1 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
                               >
                                 Supprimer
@@ -482,7 +482,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
                         {notification.actionUrl && (
                           <button
                             onClick={() => {
-                              markAsRead(notification.id);
+                              notifications.length > 0 ? markAsRead(notification.id) : markAsReadLocal(notification.id);
                               // Navigate to actionUrl
                               console.log('Navigate to:', notification.actionUrl);
                             }}
