@@ -18,8 +18,6 @@ interface InvoiceItem {
   total: number;
 }
 
-  initialData,
-  isEditing = false
 const NewInvoiceForm: React.FC<NewInvoiceFormProps> = ({ isOpen, onClose, onSave, initialData, isEditing = false }) => {
   const [formData, setFormData] = useState({
     invoiceNumber: initialData?.invoiceNumber || `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
