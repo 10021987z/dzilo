@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, X, Check, Clock, AlertCircle, CheckCircle, Info, Star, Trash2, Settings, Filter, Search, MoreHorizontal } from 'lucide-react';
+import { Bell, X, Check, Clock, AlertCircle, CheckCircle, Info, Star, Trash2, Settings, Filter, Search, MoreHorizontal, ExternalLink } from 'lucide-react';
+import { useNotifications } from '../../hooks/useNotifications';
 
 interface Notification {
   id: number;
@@ -28,7 +29,9 @@ interface NotificationCenterProps {
 }
 
 const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([
+  const { notifications, loading, unreadCount, markAsRead, markAllAsRead, getNotificationIcon, getNotificationColor } = useNotifications();
+  
+  const [localNotifications, setLocalNotifications] = useState<Notification[]>([
     {
       id: 1,
       type: 'info',
@@ -180,6 +183,13 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
     }
   ]);
 
+  // Utiliser les notifications Firebase si disponibles, sinon les notifications locales
+  const displayNotifications = notifications.length > 0 ? notifications.map(n => ({
+    ...n,
+    id: parseInt(n.id),
+    timestamp: n.createdAt.toISOString()
+  })) : localNotifications;
+
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'starred' | 'urgent'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -244,7 +254,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
     });
   };
 
-  const markAsRead = (id: number) => {
+  const markAsReadLocal = (id: number) => {
     setNotifications(prev => prev.map(notif => 
       notif.id === id ? { ...notif, isRead: true } : notif
     ));
@@ -262,7 +272,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
     ));
   };
 
-  const deleteNotification = (id: number) => {
+  const deleteNotificationLocal = (id: number) => {
     setNotifications(prev => prev.filter(notif => notif.id !== id));
   };
 
@@ -270,12 +280,15 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
     setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
   };
 
-  const filteredNotifications = notifications.filter(notif => {
+  const filteredNotifications = displayNotifications.filter(notif => {
+    const isUnread = notifications.length > 0 ? !notif.read : !notif.isRead;
+    const isUrgent = notifications.length > 0 ? notif.urgent : notif.priority === 'urgent';
+    
     const matchesFilter = 
       activeFilter === 'all' ||
-      (activeFilter === 'unread' && !notif.isRead) ||
+      (activeFilter === 'unread' && isUnread) ||
       (activeFilter === 'starred' && notif.isStarred) ||
-      (activeFilter === 'urgent' && notif.priority === 'urgent');
+      (activeFilter === 'urgent' && isUrgent);
 
     const matchesCategory = !categoryFilter || notif.category === categoryFilter;
     
@@ -286,7 +299,8 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
     return matchesFilter && matchesCategory && matchesSearch;
   });
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const displayUnreadCount = notifications.length > 0 ? unreadCount : 
+    localNotifications.filter(n => !n.isRead).length;
   const urgentCount = notifications.filter(n => n.priority === 'urgent' && !n.isRead).length;
 
   if (!isOpen) return null;
