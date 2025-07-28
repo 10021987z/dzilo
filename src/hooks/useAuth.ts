@@ -209,10 +209,16 @@ export const useAuth = () => {
     if (!user) return;
     
     try {
+      // Ensure user is authenticated
+      if (!user.uid) {
+        throw new Error('User not authenticated');
+      }
+      
       await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
       setUserProfile(prev => prev ? { ...prev, ...updates } : null);
       toast.success('Profil mis à jour !');
     } catch (error) {
+      console.error('Error updating profile:', error);
       toast.error('Erreur lors de la mise à jour du profil');
       throw error;
     }
