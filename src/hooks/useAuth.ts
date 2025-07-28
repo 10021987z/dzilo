@@ -10,7 +10,8 @@ import {
   onAuthStateChanged
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, googleProvider, db } from '../config/firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { auth, googleProvider, db, storage } from '../config/firebase';
 import toast from 'react-hot-toast';
 
 export interface UserProfile {
@@ -224,6 +225,57 @@ export const useAuth = () => {
     }
   };
 
+  const uploadProfileImage = async (file: File): Promise<string> => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      // Créer une référence unique pour l'image
+      const imageRef = ref(storage, `profile-images/${user.uid}/${Date.now()}_${file.name}`);
+      
+      // Télécharger le fichier
+      const snapshot = await uploadBytes(imageRef, file);
+      
+      // Obtenir l'URL de téléchargement
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      // Mettre à jour le profil utilisateur avec la nouvelle URL
+      await updateUserProfile({ photoURL: downloadURL });
+      
+      // Mettre à jour aussi le profil Firebase Auth
+      await updateProfile(user, { photoURL: downloadURL });
+      
+      toast.success('Photo de profil mise à jour !');
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      toast.error('Erreur lors du téléchargement de l\'image');
+      throw error;
+    }
+  };
+
+  const deleteProfileImage = async () => {
+    if (!user || !userProfile?.photoURL) return;
+
+    try {
+      // Supprimer l'ancienne image si elle existe
+      if (userProfile.photoURL.includes('firebase')) {
+        const imageRef = ref(storage, userProfile.photoURL);
+        await deleteObject(imageRef);
+      }
+      
+      // Mettre à jour le profil
+      await updateUserProfile({ photoURL: undefined });
+      await updateProfile(user, { photoURL: null });
+      
+      toast.success('Photo de profil supprimée !');
+    } catch (error) {
+      console.error('Error deleting profile image:', error);
+      toast.error('Erreur lors de la suppression de l\'image');
+      throw error;
+    }
+  };
   return {
     user,
     userProfile,
@@ -234,7 +286,9 @@ export const useAuth = () => {
     signInWithGoogle,
     resetPassword,
     logout,
-    updateUserProfile
+    updateUserProfile,
+    uploadProfileImage,
+    deleteProfileImage
   };
 };
 

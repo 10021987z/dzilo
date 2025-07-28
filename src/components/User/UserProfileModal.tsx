@@ -3,7 +3,7 @@ import {
   User, Camera, Save, X, Mail, Phone, MapPin, Calendar, 
   Briefcase, Award, Star, Heart, Coffee, Zap, Target, 
   TrendingUp, Clock, CheckCircle, Upload, Download, Share2, 
-  Settings, Shield, Bell, Eye, EyeOff, Edit 
+  Settings, Shield, Bell, Eye, EyeOff, Edit, Trash2 
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
@@ -14,10 +14,11 @@ interface UserProfileModalProps {
 }
 
 const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) => {
-  const { userProfile, updateUserProfile } = useAuth();
+  const { userProfile, updateUserProfile, uploadProfileImage, deleteProfileImage } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   const [formData, setFormData] = useState({
     displayName: userProfile?.displayName || '',
@@ -59,6 +60,44 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Vérifier le type de fichier
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner un fichier image');
+      return;
+    }
+
+    // Vérifier la taille (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('L\'image ne doit pas dépasser 5MB');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const downloadURL = await uploadProfileImage(file);
+      setFormData(prev => ({ ...prev, photoURL: downloadURL }));
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer votre photo de profil ?')) {
+      try {
+        await deleteProfileImage();
+        setFormData(prev => ({ ...prev, photoURL: '' }));
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+      }
+    }
+  };
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800';
@@ -91,9 +130,9 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
           <div className="relative z-10 flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="relative group">
-                {userProfile?.photoURL ? (
+                {(formData.photoURL || userProfile?.photoURL) ? (
                   <img
-                    src={userProfile.photoURL}
+                    src={formData.photoURL || userProfile?.photoURL}
                     alt="Profile"
                     className="w-16 h-16 rounded-full border-4 border-white shadow-lg group-hover:scale-110 transition-transform duration-300"
                   />
@@ -103,8 +142,27 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
                   </div>
                 )}
                 {isEditing && (
-                  <button className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Camera className="w-6 h-6 text-white" />
+                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={isUploadingImage}
+                    />
+                    {isUploadingImage ? (
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Camera className="w-6 h-6 text-white" />
+                    )}
+                  </div>
+                )}
+                {isEditing && (formData.photoURL || userProfile?.photoURL) && (
+                  <button
+                    onClick={handleDeleteImage}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
                   </button>
                 )}
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
@@ -201,6 +259,48 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
                 </button>
               ))}
             </div>
+
+            {/* Image Upload Section */}
+            {isEditing && (
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <h3 className="text-sm font-medium text-slate-900 mb-3">Photo de Profil</h3>
+                <div className="space-y-3">
+                  <label className="block">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={isUploadingImage}
+                    />
+                    <div className="cursor-pointer bg-blue-50 hover:bg-blue-100 border-2 border-dashed border-blue-300 rounded-lg p-4 text-center transition-colors">
+                      {isUploadingImage ? (
+                        <div className="flex items-center justify-center">
+                          <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2" />
+                          <span className="text-sm text-blue-600">Téléchargement...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                          <p className="text-sm text-blue-600 font-medium">Changer la photo</p>
+                          <p className="text-xs text-blue-500">JPG, PNG (max 5MB)</p>
+                        </>
+                      )}
+                    </div>
+                  </label>
+                  
+                  {(formData.photoURL || userProfile?.photoURL) && (
+                    <button
+                      onClick={handleDeleteImage}
+                      className="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Supprimer la photo
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Content */}
