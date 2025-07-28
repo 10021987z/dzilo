@@ -116,14 +116,25 @@ export const useNotifications = () => {
   };
 
   const createNotification = async (notification: Omit<Notification, 'id' | 'createdAt'>) => {
+    if (!user) {
+      console.error('Impossible de créer une notification sans utilisateur connecté');
+      return;
+    }
+
     try {
-      await addDoc(collection(db, 'notifications'), {
+      // S'assurer que userId est défini
+      const notificationData = {
         ...notification,
+        userId: notification.userId || user.uid,
         createdAt: Timestamp.now(),
         metadata: {
           ...notification.metadata,
           dueDate: notification.metadata?.dueDate ? Timestamp.fromDate(notification.metadata.dueDate) : undefined
         }
+      };
+
+      await addDoc(collection(db, 'notifications'), {
+        ...notificationData
       });
     } catch (error) {
       console.error('Erreur lors de la création de la notification:', error);
